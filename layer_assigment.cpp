@@ -588,7 +588,9 @@ void CIRCUIT::dynamic_program_main(NET& _net,int netindex,int mode,int greedy,do
     tf::Taskflow taskflow;
     tf::Task task;
     buildDependency(_net.RTree, 0, record_dp, _net.resultsegments, netindex, mode, greedy, _net.fatwirelevelthreshold, taskflow, task);
-    executor.run(taskflow).wait();
+    //executor.run(taskflow).wait();
+    taskflow.dump(std::cout);
+    exit(0);
 }
 
 void CIRCUIT::buildDependency(vector<TREE_NODE>& _rt,int index, vector<RECORD_DP>& record_dp, 
@@ -714,7 +716,7 @@ void CIRCUIT::dynamic_program(vector<TREE_NODE>& _rt,int index, vector<RECORD_DP
                         for(int j=0;j<_rt[index].pinlayer.size();j++)
                             via_c_tmp += load_C;
                 }
-                else {
+                else{
                     via_c_tmp = 0.0;
                     low=0;
                     top=0;
@@ -1008,8 +1010,10 @@ void CIRCUIT::dynamic_program(vector<TREE_NODE>& _rt,int index, vector<RECORD_DP
             }
             findallcombinefor( _rt[index].child_index.size(),record_dp, _rt, index,j,1);
         }
+
         record_dp[index].done = true;
     }
+
 }
 
 void CIRCUIT::findallcombinefor( int n,vector<RECORD_DP>& record_dp, vector<TREE_NODE>& rt,int treeindex,int presentlayerindex,int mode){//mode 0 = routing tree root / mode 1 = others
@@ -1640,3 +1644,5 @@ void CIRCUIT::computecritical(){
     cout << "critical 10 %: " << avegten << " num: " << vtmp.size()*0.1 << endl;
     cout << "max :" << vtmp[vtmp.size()-1].eldelay << endl;
 }
+
+

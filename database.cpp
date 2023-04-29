@@ -433,10 +433,11 @@ void NET::splitsegmentto2pinsegment(vector<SEGMENT> &_segments, int mode){
     for(int i=0;i<_segments.size()-1;i++){
         for(int j=i+1;j<_segments.size();j++){
             SEGMENT_POINT segtmp;
+
             bool havecross;
             havecross = false;
             if(_segments[i].VORH == _segments[j].VORH){//same direction
-                if(_segments[i].VORH ==1 && _segments[i].p1.x == _segments[j].p1.x && _segments[i].p1.layer == _segments[j].p1.layer){//Vertical 
+                if(_segments[i].VORH == 1 && _segments[i].p1.x == _segments[j].p1.x && _segments[i].p1.layer == _segments[j].p1.layer){//Vertical 
                     if(_segments[i].p1.y == _segments[j].p2.y){
                         segtmp.x = _segments[i].p1.x;
                         segtmp.layer = _segments[i].p1.layer;
@@ -513,14 +514,13 @@ void NET::splitsegmentto2pinsegment(vector<SEGMENT> &_segments, int mode){
                     }
                 }
             }
-            if(havecross){
-                if(_segments.size()>1000){
+            if (havecross) {
+                if (_segments.size()>1000) {
                     int level = segtmp.layer;
                     int tmp = data[segtmp.x/32][segtmp.y/40]%rounding(pow(10,level));
                     if(tmp < rounding(pow(10,level-1))){
                         crosspoint.push_back(segtmp);
                         data[segtmp.x/32][segtmp.y/40] += rounding(pow(10,level-1));
-
                     }
                 }
                 else{
@@ -528,7 +528,6 @@ void NET::splitsegmentto2pinsegment(vector<SEGMENT> &_segments, int mode){
                 }
 
             }
-            
         }
     }
 

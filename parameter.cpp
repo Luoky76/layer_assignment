@@ -91,5 +91,3 @@ void readparameter( std::string filename){
         }
     }
 }
-
-

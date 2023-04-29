@@ -297,16 +297,13 @@ public:
         else if(mainmode==1){
 
             computeaveragedensity();
-            
 			
 			cout << "start initial dp layer assignment\n";
             //double tmp = Miu;
             //Miu=0;//variable of congestion cost
 			Lambda = 10; Beta = 1; Miu = 1; parallelmode = 0;//注意：Miu=1
             initialLA();
-			//Miu = tmp;
-            
-			
+			//Miu = tmp; 
 						
 			cout << "start RRA\n";
 			Lambda = 10; Beta = 1; Miu = 1; parallelmode = 0;
@@ -387,7 +384,6 @@ public:
     void buildDependency(vector<TREE_NODE>& _rt,int index, vector<RECORD_DP>& record_dp, 
     vector<SEGMENT>& resultsegments,int netindex,int mode,int greedy, double q, 
     tf::Taskflow &taskflow, tf::Task &current_task);
-
 private:
     map<string,int> nodesid2index;
     vector<NODE> nodes;
