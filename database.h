@@ -54,6 +54,11 @@ public:
     double weight;//delay cost = weight*delay*Lambda
     double level;//= node level / max node level
     bool underlevelthreshould;//determine use parallel or NDR or not (true= can use, false=cannot use)
+
+    TREE_NODE()
+    {
+        wirenumber = 0;
+    }
 };
 
 class SEGMENT_POINT{

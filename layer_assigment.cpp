@@ -588,9 +588,9 @@ void CIRCUIT::dynamic_program_main(NET& _net,int netindex,int mode,int greedy,do
     tf::Taskflow taskflow;
     tf::Task task;
     buildDependency(_net.RTree, 0, record_dp, _net.resultsegments, netindex, mode, greedy, _net.fatwirelevelthreshold, taskflow, task);
-    //executor.run(taskflow).wait();
-    taskflow.dump(std::cout);
-    exit(0);
+    executor.run(taskflow).wait();
+    //taskflow.dump(std::cout);
+    //exit(0);
 }
 
 void CIRCUIT::buildDependency(vector<TREE_NODE>& _rt,int index, vector<RECORD_DP>& record_dp, 
