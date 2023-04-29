@@ -10,7 +10,8 @@
                 //"${file}",
                 "${fileDirname}\\*.cpp",    //同时编译文件夹中所有 cpp 文件
                 "-o",
-                "${fileDirname}\\${fileBasenameNoExtension}.exe"
+                "${fileDirname}\\${fileBasenameNoExtension}.exe",
+                "-std=c++17"
             ],
             "options": {
                 "cwd": "${fileDirname}"
