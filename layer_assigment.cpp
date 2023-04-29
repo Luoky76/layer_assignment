@@ -604,7 +604,7 @@ void CIRCUIT::buildDependency(vector<TREE_NODE>& _rt,int index, vector<RECORD_DP
     for(int i=0;i< _rt[index].child_index.size();i++)
     {
         tf::Task child_task;
-        buildDependency(_rt, _rt[index].child_index[i], record_dp, resultsegments, netindex, mode, greedy, q, taskflow, child_task);
+        buildDependency(_rt, _rt[index].child_index[i], record_dp, resultsegments, netindex, mode, greedy, 0, taskflow, child_task);
         current_task.succeed(child_task);
     }
 }
