@@ -638,8 +638,8 @@ void CIRCUIT::dynamic_program(vector<TREE_NODE>& _rt,int index, vector<RECORD_DP
 
             //unable using parallel wire 
             if(mode==0 || ( !_rt[index].underlevelthreshould && !greedy)){
-                parallelnumber =0;
-                record_dp[index].parallelwirenumber=0;
+                parallelnumber = 0;
+                record_dp[index].parallelwirenumber = 0;
             }
       
             int toplayerindex = (parallelnumber+1)*4-1;
@@ -698,8 +698,11 @@ void CIRCUIT::dynamic_program(vector<TREE_NODE>& _rt,int index, vector<RECORD_DP
                                 if(_rt[index].pinlayer[k] == j)
                                     via_c_tmp += load_C;
                             }
-                            via_delay_tmp += (via_c_tmp + via_C[j-1]/2)*via_R[j-1];
-                            via_c_tmp += via_C[j-1];
+                            if (j-1>=0)
+                            {
+                                via_delay_tmp += (via_c_tmp + via_C[j-1]/2)*via_R[j-1];
+                                via_c_tmp += via_C[j-1];
+                            }
                         }
                     }
                     
@@ -710,7 +713,10 @@ void CIRCUIT::dynamic_program(vector<TREE_NODE>& _rt,int index, vector<RECORD_DP
                     if(presentlayer < low)
                         low = presentlayer;
                     for(int j=low;j<top;j++){
-                        via_c_tmp += via_C[j-1];
+                        if (j-1>=0)
+                        {
+                            via_c_tmp += via_C[j-1];
+                        }
                     }
                     if(_rt[index].pinlayer[0]!=-1)
                         for(int j=0;j<_rt[index].pinlayer.size();j++)
@@ -835,8 +841,11 @@ void CIRCUIT::dynamic_program(vector<TREE_NODE>& _rt,int index, vector<RECORD_DP
                                 if(j== _rt[index].pinlayer[k])
                                     via_c_tmp += load_C;
                             }
-                            via_delay_tmp += (via_c_tmp + via_C[j-1]/2)*via_R[j-1];
-                            via_c_tmp += via_C[j-1];
+                            if (j-1>=0)
+                            {
+                                via_delay_tmp += (via_c_tmp + via_C[j-1]/2)*via_R[j-1];
+                                via_c_tmp += via_C[j-1];
+                            }
                         }
                     }
 
@@ -847,7 +856,10 @@ void CIRCUIT::dynamic_program(vector<TREE_NODE>& _rt,int index, vector<RECORD_DP
                     if(presentlayer < low)
                          low = presentlayer;
                     for(int j=low;j<top;j++){
-                        via_c_tmp += via_C[j-1];
+                        if (j-1>=0)
+                        {
+                            via_c_tmp += via_C[j-1];
+                        }
                     }
                     if(_rt[index].pinlayer[0]!=-1)
                         for(int j=0;j<_rt[index].pinlayer.size();j++)
@@ -1124,8 +1136,11 @@ void CIRCUIT::findallcombinefor( int n,vector<RECORD_DP>& record_dp, vector<TREE
                         if(rt[treeindex].pinlayer[k]==j)
                             ctmp += load_C;
                     }
-                    highviadelay += (via_C[j-1]/2+ctmp)*via_R[j-1];
-                    ctmp += via_C[j-1];
+                    if (j-1>=0)
+                    {
+                        highviadelay += (via_C[j-1]/2+ctmp)*via_R[j-1];
+                        ctmp += via_C[j-1];
+                    }
                 }
 
                 //lowviadelay
@@ -1271,8 +1286,11 @@ void CIRCUIT::findallcombinefor( int n,vector<RECORD_DP>& record_dp, vector<TREE
                     if(rt[treeindex].pinlayer[k] == j)
                         via_c_tmp += load_C;
                 }
-                via_delay_tmp += ((via_C[j-1]/2)+via_c_tmp)*via_R[j-1];
-                via_c_tmp += via_C[j-1];
+                if (j-1>=0)
+                {
+                    via_delay_tmp += ((via_C[j-1]/2)+via_c_tmp)*via_R[j-1];
+                    via_c_tmp += via_C[j-1];
+                }
             }
             highviadelay = via_delay_tmp;
 
