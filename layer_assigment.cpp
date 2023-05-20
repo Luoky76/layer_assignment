@@ -608,44 +608,92 @@ void CIRCUIT::dynamic_program_main(NET& _net,int netindex,int mode,int greedy,do
     //     out_rt_node_re_height_dis << dynamic_program_main_access_number << "," << it.first << "," << it.second << endl;
     // }
     // dynamic_program(_net.RTree,0, record_dp,_net.resultsegments,netindex,mode,greedy,_net.fatwirelevelthreshold);
-    vector<RECORD_DP>  record_dp;
-    record_dp.resize(_net.RTree.size());
-    int leaf_number = 0;
+    vector<RECORD_DP>  record_dp(_net.RTree.size());
     vector<TREE_NODE>& _rt = _net.RTree;
-    for(int i=0;i<record_dp.size();i++){
-        record_dp[i].done = false;
-        if (!_rt[i].child_index.size()) {
-            leaf_number ++;
-            continue;
+    vector<SEGMENT>& resultsegments = _net.resultsegments;
+    int _rt_i = 0;
+    for(auto &record: record_dp) {
+        record.done = false;
+        if(_rt[_rt_i].child_index.size()) {
+            record.child_combine.resize(8);
+            for(auto &child_combine: record.child_combine) {
+                child_combine.resize( _rt[_rt_i].child_index.size()  );
+            }
         }
-        record_dp[i].child_combine.resize(8);
-        for(int j=0;j < 8;j++)
-            record_dp[i].child_combine[j].resize( _net.RTree[i].child_index.size()  );
+        ++_rt_i;
     }
-    tf::Taskflow taskflow;
-    tf::Task task;
-    buildDependency(_net.RTree, 0, record_dp, _net.resultsegments, netindex, mode, greedy, _net.fatwirelevelthreshold, taskflow, task);
-    //自适应线程数
-    tf::Executor executor(min(12, (leaf_number+9)/10));
-    // tf::Executor executor(1);
-    executor.run(taskflow).wait();
-    //taskflow.dump(std::cout);
-    //exit(0);
+    // 原来的初始化
+    // for(int i=0;i<record_dp.size();i++){
+    //     record_dp[i].done = false;
+    //     if (_rt[i].child_index.size()) {
+    //         record_dp[i].child_combine.resize(8);
+    //         for(int j=0;j < 8; j++)
+    //             record_dp[i].child_combine[j].resize( _net.RTree[i].child_index.size()  );
+    //     }
+    // }
+    // BFS
+    // if (record_dp.size() <= 50) {
+    //     vector<int> index_list(_rt.size());
+    //     int l=0, r = 0;
+    //     while(l <= r) {
+    //         for(auto &it : _rt[index_list[l]].child_index) {
+    //             index_list[++r] = it;
+    //         }
+    //         l++;
+    //     }
+    //     for(int i = r; i>=0; i--) {
+    //         dynamic_program(_rt, index_list[i], record_dp, resultsegments, netindex, mode, greedy, q);
+    //     }
+    if (_net.parallel == -1) {
+        int leaf_number = 0;
+        for(auto &it: _rt) leaf_number += int(it.child_index.size() == 0);
+        // _net.parallel = min(12, (leaf_number+19)/20);
+        _net.parallel = 1; //min(12, (leaf_number+9)/10);
+    }
+    // } else {
+        tf::Taskflow taskflow;
+        buildDependency(_rt, record_dp, _net.resultsegments, netindex, mode, greedy, _net.fatwirelevelthreshold, taskflow);
+        //自适应线程数
+        tf::Executor executor(_net.parallel);
+        executor.run(taskflow).wait();
+        //taskflow.dump(std::cout);
+        //exit(0);
+    // }
 }
 
-void CIRCUIT::buildDependency(vector<TREE_NODE>& _rt,int index, vector<RECORD_DP>& record_dp, 
+void CIRCUIT::buildDependency(vector<TREE_NODE>& _rt, vector<RECORD_DP>& record_dp, 
     vector<SEGMENT>& resultsegments,int netindex,int mode,int greedy, double q, 
-    tf::Taskflow &taskflow, tf::Task &current_task)
+    tf::Taskflow &taskflow)
 {
-    current_task = taskflow.emplace([=, &_rt, &record_dp, &resultsegments]()
+    //利用队列构造任务依赖
+
+    //树节点队列
+    vector <int> nodes(_rt.size());
+    //任务节点队列
+    vector <tf::Task> tasks(_rt.size());
+    //队列头尾指针
+    int l = 0, r = 0;
+    //将根节点0加入队列
+    nodes[0] = 0;
+    //将根节点任务加入队列
+    tasks[0] = taskflow.emplace([=, &_rt, &record_dp, &resultsegments]()
     {
-        dynamic_program(_rt, index, record_dp, resultsegments, netindex, mode, greedy, q);
+        dynamic_program(_rt, 0, record_dp, resultsegments, netindex, mode, greedy, q);
     });
-    for(int i=0;i< _rt[index].child_index.size();i++)
+    while (l<=r)
     {
-        tf::Task child_task;
-        buildDependency(_rt, _rt[index].child_index[i], record_dp, resultsegments, netindex, mode, greedy, 0, taskflow, child_task);
-        current_task.succeed(child_task);
+        for (auto &ch:_rt[nodes[l]].child_index)
+        {
+            ++r;
+            nodes[r] = ch;
+            tasks[r] = taskflow.emplace([=, &_rt, &record_dp, &resultsegments]()
+            {
+                dynamic_program(_rt, ch, record_dp, resultsegments, netindex, mode, greedy, 0);
+            });
+            //父节点在子节点之后执行
+            tasks[l].succeed(tasks[r]);
+        }
+        ++l;
     }
 }
 
