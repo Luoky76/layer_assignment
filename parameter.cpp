@@ -11,7 +11,7 @@ TABLE RCtable[9];
 int mainmode = 0;
 int weightmode =0;
 int parallelmode =0;
-wirePropertyTable wpt = wpTableLoader().load("data\\wireTable");
+wirePropertyTable wpt = wpTableLoader().load("data/wireTable");
 int tmode = 1;
 int nodeweightingthreshold = 1;
 double nodeweightingparamter = 1.0;

@@ -1,6 +1,6 @@
 #include "database.h"
 #include <limits>
-#include <omp.h>
+// #include <omp.h>
 
 inline int rounding(double val) {  
       return (int) (val + 0.5);
@@ -572,22 +572,62 @@ void NET::passupdate(int index,double slack){
 
 }
 
+static int calcIndicators(
+    vector<TREE_NODE>& _rt, int _rt_index, // base
+    int _rt_node_height, map<int, int> &_rt_node_height_dis, // distribution of height of _rt's node 
+    map<int, int> &_rt_node_re_height_dis // distribution of re height of _rt's node
+) {
+    _rt_node_height_dis[_rt_node_height]++;
+    int _rt_node_re_height = -1;
+    for(int i = 0; i < _rt[_rt_index].child_index.size(); i++) {
+       int _rt_son_node_re_height =  calcIndicators(_rt, _rt[_rt_index].child_index[i], _rt_node_height+1, _rt_node_height_dis, _rt_node_re_height_dis);
+       _rt_node_re_height = max(_rt_node_re_height, _rt_son_node_re_height); 
+    }
+    _rt_node_re_height++;
+    _rt_node_re_height_dis[_rt_node_re_height]++;
+    return _rt_node_re_height;
+}
+
 void CIRCUIT::dynamic_program_main(NET& _net,int netindex,int mode,int greedy,double q){
+    // static int dynamic_program_main_access_number = 0;
+    // dynamic_program_main_access_number++;
+    // static ofstream out_rt_max_height_dis("analyze/rt_max_height_dis.txt");
+    // static ofstream out_rt_node_height_dis("analyze/rt_node_height_dis.txt");
+    // static ofstream out_rt_max_re_height_dis("analyze/rt_max_re_height_dis.txt");
+    // static ofstream out_rt_node_re_height_dis("analyze/rt_node_re_height_dis.txt");
+    // // 计算每一次与树相关的指标
+    // map<int, int> _rt_node_height_dis;
+    // map<int, int> _rt_node_re_height_dis;
+    // calcIndicators(_net.RTree, 0, 0, _rt_node_height_dis, _rt_node_re_height_dis); 
+    // out_rt_max_height_dis << dynamic_program_main_access_number << "," << _rt_node_height_dis.rbegin()->first << endl;
+    // for(auto &it: _rt_node_height_dis) {
+    //     out_rt_node_height_dis << dynamic_program_main_access_number << "," << it.first << "," << it.second << endl;
+    // }
+    // out_rt_max_re_height_dis << dynamic_program_main_access_number << "," << _rt_node_height_dis.rbegin()->first << endl;
+    // for(auto &it: _rt_node_re_height_dis) {
+    //     out_rt_node_re_height_dis << dynamic_program_main_access_number << "," << it.first << "," << it.second << endl;
+    // }
+    // dynamic_program(_net.RTree,0, record_dp,_net.resultsegments,netindex,mode,greedy,_net.fatwirelevelthreshold);
     vector<RECORD_DP>  record_dp;
     record_dp.resize(_net.RTree.size());
+    int leaf_number = 0;
+    vector<TREE_NODE>& _rt = _net.RTree;
     for(int i=0;i<record_dp.size();i++){
         record_dp[i].done = false;
-        if(_net.RTree[i].child_index.size()==0)
+        if (!_rt[i].child_index.size()) {
+            leaf_number ++;
             continue;
+        }
         record_dp[i].child_combine.resize(8);
-        for(int j=0;j< 8;j++)
+        for(int j=0;j < 8;j++)
             record_dp[i].child_combine[j].resize( _net.RTree[i].child_index.size()  );
     }
-    //dynamic_program(_net.RTree,0, record_dp,_net.resultsegments,netindex,mode,greedy,_net.fatwirelevelthreshold);
-    tf::Executor executor;
     tf::Taskflow taskflow;
     tf::Task task;
     buildDependency(_net.RTree, 0, record_dp, _net.resultsegments, netindex, mode, greedy, _net.fatwirelevelthreshold, taskflow, task);
+    //自适应线程数
+    tf::Executor executor(min(12, (leaf_number+9)/10));
+    // tf::Executor executor(1);
     executor.run(taskflow).wait();
     //taskflow.dump(std::cout);
     //exit(0);

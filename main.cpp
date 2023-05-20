@@ -20,13 +20,14 @@ int main(int argc, char* argv[]) {
     filenames.resize(6);
     filenames[0] = "-----error-----";
     string cir_number; //数据编号
-    cout << "input the superblue:";
+    cout << "input the superblue:" << endl;;
     cin >> cir_number;
-    filenames[1] = "data\\superblue" + cir_number;
-    filenames[2] = "data\\HQ_GRsb" + cir_number;
-    filenames[3] = "data\\sb" + cir_number + ".marge";
-    filenames[4] = "data\\output"; // FIXME can add cir_number.
-    filenames[5] = "data\\my_wp_parameter_v2.txt"; // alined all benchmark
+    cout << "current data: " << cir_number << endl;
+    filenames[1] = "data/superblue" + cir_number;
+    filenames[2] = "data/HQ_GRsb" + cir_number;
+    filenames[3] = "data/sb" + cir_number + ".marge";
+    filenames[4] = "data/output"; // FIXME can add cir_number.
+    filenames[5] = "data/my_wp_parameter_v2.txt"; // alined all benchmark
 
     //struct timeval s_t;
     //gettimeofday(&s_t, NULL);
