@@ -100,6 +100,7 @@ public:
         needreassign = false;//using in ripup and reassign
         maxlevel=0;// the max level of nodes of 2D routed tree. the level of root node is 1.
         fatwirelevelthreshold=0.0;//the node level threshould
+        parallel=-1;
     };
     void setname(string _name){
         name = _name;
@@ -116,6 +117,7 @@ public:
     vector<SEGMENT> twoDsegments;// the modified 2D segment
     vector<TREE_NODE> RTree;// the routed tree of the net.
     vector<SEGMENT> resultsegments;// the layer assignment result
+    int parallel;
     bool havesegment;
     void createroutingtree(vector<SEGMENT>& ,int,vector<vector<EDGE_C> >& ,vector<int>& , vector<int>& ,vector<int>&,vector<int>& );
     bool findcrosspoint(SEGMENT , SEGMENT, SEGMENT_POINT &);
@@ -386,9 +388,9 @@ public:
 
     //新增函数
     //建立依赖
-    void buildDependency(vector<TREE_NODE>& _rt,int index, vector<RECORD_DP>& record_dp, 
+    void buildDependency(vector<TREE_NODE>& _rt, vector<RECORD_DP>& record_dp, 
     vector<SEGMENT>& resultsegments,int netindex,int mode,int greedy, double q, 
-    tf::Taskflow &taskflow, tf::Task &current_task);
+    tf::Taskflow &taskflow);
 private:
     map<string,int> nodesid2index;
     vector<NODE> nodes;

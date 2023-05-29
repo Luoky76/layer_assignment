@@ -6,6 +6,10 @@ inline int rounding(double val) {
       return (int) (val + 0.5);
 }
 
+//避免反复申请和释放线程，直接全局定义
+//12为线程数，可缺省，默认为CPU核心数
+tf::Executor executor(12);
+
 double k1 = 1;
 int globaliteration;
 inline double astar(TREE_NODE rt,double child_c){
@@ -595,7 +599,7 @@ void CIRCUIT::dynamic_program_main(NET& _net,int netindex,int mode,int greedy,do
     // static ofstream out_rt_node_height_dis("analyze/rt_node_height_dis.txt");
     // static ofstream out_rt_max_re_height_dis("analyze/rt_max_re_height_dis.txt");
     // static ofstream out_rt_node_re_height_dis("analyze/rt_node_re_height_dis.txt");
-    // // 计算每一次与树相关的指标
+    // 计算每一次与树相关的指标
     // map<int, int> _rt_node_height_dis;
     // map<int, int> _rt_node_re_height_dis;
     // calcIndicators(_net.RTree, 0, 0, _rt_node_height_dis, _rt_node_re_height_dis); 
@@ -607,7 +611,7 @@ void CIRCUIT::dynamic_program_main(NET& _net,int netindex,int mode,int greedy,do
     // for(auto &it: _rt_node_re_height_dis) {
     //     out_rt_node_re_height_dis << dynamic_program_main_access_number << "," << it.first << "," << it.second << endl;
     // }
-    // dynamic_program(_net.RTree,0, record_dp,_net.resultsegments,netindex,mode,greedy,_net.fatwirelevelthreshold);
+
     vector<RECORD_DP>  record_dp(_net.RTree.size());
     vector<TREE_NODE>& _rt = _net.RTree;
     vector<SEGMENT>& resultsegments = _net.resultsegments;
@@ -617,7 +621,7 @@ void CIRCUIT::dynamic_program_main(NET& _net,int netindex,int mode,int greedy,do
         if(_rt[_rt_i].child_index.size()) {
             record.child_combine.resize(8);
             for(auto &child_combine: record.child_combine) {
-                child_combine.resize( _rt[_rt_i].child_index.size()  );
+                child_combine.resize(_rt[_rt_i].child_index.size());
             }
         }
         ++_rt_i;
@@ -631,34 +635,20 @@ void CIRCUIT::dynamic_program_main(NET& _net,int netindex,int mode,int greedy,do
     //             record_dp[i].child_combine[j].resize( _net.RTree[i].child_index.size()  );
     //     }
     // }
-    // BFS
-    // if (record_dp.size() <= 50) {
-    //     vector<int> index_list(_rt.size());
-    //     int l=0, r = 0;
-    //     while(l <= r) {
-    //         for(auto &it : _rt[index_list[l]].child_index) {
-    //             index_list[++r] = it;
-    //         }
-    //         l++;
-    //     }
-    //     for(int i = r; i>=0; i--) {
-    //         dynamic_program(_rt, index_list[i], record_dp, resultsegments, netindex, mode, greedy, q);
-    //     }
-    if (_net.parallel == -1) {
+
+    //自适应线程数方法，parallel表示线程数
+    /*if (_net.parallel == -1) {
         int leaf_number = 0;
         for(auto &it: _rt) leaf_number += int(it.child_index.size() == 0);
-        // _net.parallel = min(12, (leaf_number+19)/20);
-        _net.parallel = 1; //min(12, (leaf_number+9)/10);
-    }
-    // } else {
-        tf::Taskflow taskflow;
-        buildDependency(_rt, record_dp, _net.resultsegments, netindex, mode, greedy, _net.fatwirelevelthreshold, taskflow);
-        //自适应线程数
-        tf::Executor executor(_net.parallel);
-        executor.run(taskflow).wait();
-        //taskflow.dump(std::cout);
-        //exit(0);
-    // }
+        _net.parallel = min(12, leaf_number);
+    }*/
+
+    tf::Taskflow taskflow;
+    buildDependency(_rt, record_dp, _net.resultsegments, netindex, mode, greedy, _net.fatwirelevelthreshold, taskflow);
+    executor.run(taskflow).wait();
+
+    //原来的动规调用
+    // dynamic_program(_net.RTree,0, record_dp,_net.resultsegments,netindex,mode,greedy,_net.fatwirelevelthreshold);
 }
 
 void CIRCUIT::buildDependency(vector<TREE_NODE>& _rt, vector<RECORD_DP>& record_dp, 
